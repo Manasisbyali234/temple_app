@@ -4,7 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
 
 class MemberDetailScreen extends StatefulWidget {
-  final int memberId;
+  final String memberId;
   final String memberName;
   const MemberDetailScreen({super.key, required this.memberId, required this.memberName});
 

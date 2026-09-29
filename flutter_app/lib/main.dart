@@ -8,7 +8,6 @@ import 'services/local_db.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await LocalDb.db; // ensure DB + tables are created before app starts
   runApp(const TempleApp());
 }
 

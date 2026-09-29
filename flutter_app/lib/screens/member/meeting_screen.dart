@@ -66,8 +66,7 @@ class _MeetingScreenState extends State<MeetingScreen> with SingleTickerProvider
                           child: ExpansionTile(
                             leading: const Icon(Icons.groups_2, color: Colors.teal),
                             title: Text(m.title),
-                            subtitle: Text(
-                                '${DateFormat('dd MMM yyyy').format(m.meetingDate)}  ${m.meetingTime ?? ''}'),
+                            subtitle: Text('${m.meetingDate}  ${m.meetingTime ?? ''}'),
                             children: [
                               if (m.notes != null && m.notes!.isNotEmpty)
                                 Padding(

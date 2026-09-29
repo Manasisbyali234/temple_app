@@ -61,14 +61,13 @@ class _BannerScreenState extends State<BannerScreen> with SingleTickerProviderSt
                       itemCount: _banners.length,
                       itemBuilder: (_, i) {
                         final b = _banners[i];
-                        final df = DateFormat('dd MMM yyyy');
                         return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           child: ListTile(
                             leading: Icon(Icons.campaign, color: b.active ? Colors.green : Colors.grey),
                             title: Text(b.title),
                             subtitle: Text(
-                                '${df.format(b.startDate)} → ${df.format(b.endDate)}\n${b.startTime ?? ''} - ${b.endTime ?? ''}'),
+                                '${b.startDate} → ${b.endDate}\n${b.startTime ?? ''} - ${b.endTime ?? ''}'),
                             isThreeLine: true,
                             trailing: Chip(label: Text(b.active ? 'Active' : 'Inactive')),
                           ),

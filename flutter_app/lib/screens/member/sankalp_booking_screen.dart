@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/models.dart';
@@ -81,8 +80,7 @@ class _SankalpBookingScreenState extends State<SankalpBookingScreen> with Single
                                 return ListTile(
                                   leading: const Icon(Icons.handshake, color: Colors.brown),
                                   title: Text('${b.devoteeName} — ${b.typeName}'),
-                                  subtitle: Text(
-                                      '${DateFormat('dd MMM yyyy').format(b.bookingDate)}  ${b.bookingTime ?? ''}'),
+                                  subtitle: Text('${b.bookingDate}  ${b.bookingTime ?? ''}'),
                                   trailing: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [

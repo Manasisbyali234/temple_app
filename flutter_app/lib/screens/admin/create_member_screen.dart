@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
+import '../../services/local_db.dart';
 
 class CreateMemberScreen extends StatefulWidget {
   const CreateMemberScreen({super.key});
@@ -34,11 +35,18 @@ class _CreateMemberScreenState extends State<CreateMemberScreen> {
         'phone': _phoneCtrl.text.trim(),
         'password': _passCtrl.text,
       });
-      if (mounted) Navigator.pop(context, true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Member created successfully!')),
+        );
+        Navigator.pop(context, true);
+      }
+    } on ApiLoginException catch (e) {
+      setState(() => _error = e.message);
     } on ApiException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
-      setState(() => _error = 'Something went wrong. Please try again.');
+      setState(() => _error = 'Error: ${e.toString()}');
     } finally {
       if (mounted) setState(() => _loading = false);
     }

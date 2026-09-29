@@ -1,4 +1,7 @@
-import 'local_db.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../config.dart';
 
 class ApiException implements Exception {
   final String message;
@@ -7,75 +10,55 @@ class ApiException implements Exception {
   String toString() => message;
 }
 
-/// Drop-in replacement for the HTTP ApiService.
-/// Routes every call to the local SQLite database instead of a backend server.
 class ApiService {
-  final int? memberId;
+  final String? memberId;
   final String? role;
 
-  ApiService({String? token, this.memberId, this.role});
+  ApiService({this.memberId, this.role});
+
+  static Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+
+  Future<Map<String, String>> _headers() async {
+    final token = await _getToken();
+    return {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  String get _base => AppConfig.apiBaseUrl;
+
+  dynamic _parse(http.Response res) {
+    final body = jsonDecode(res.body);
+    if (res.statusCode >= 400) {
+      throw ApiException((body as Map)['error']?.toString() ?? 'Request failed');
+    }
+    return body;
+  }
 
   Future<dynamic> get(String path) async {
-    // Admin dashboard
-    if (path == '/members/dashboard/admin') {
-      return LocalDb.getAdminDashboard();
-    }
-    // Member list
-    if (path == '/members') {
-      return LocalDb.getMembers();
-    }
-    // Member summary: /members/{id}/summary
-    final memberSummaryMatch = RegExp(r'^/members/(\d+)/summary$').firstMatch(path);
-    if (memberSummaryMatch != null) {
-      return LocalDb.getMemberSummary(int.parse(memberSummaryMatch.group(1)!));
-    }
-    // Devotee summary for current member
-    if (path == '/devotees/summary/me') {
-      return LocalDb.getDevoteeSummary(memberId!);
-    }
-    // Donation summary for current member
-    if (path == '/donations/summary/me') {
-      return LocalDb.getDonationSummary(memberId!);
-    }
-    if (path == '/devotees') return LocalDb.getDevotees(memberId!);
-    if (path == '/donations') return LocalDb.getDonations(memberId!);
-    if (path == '/banners') return LocalDb.getBanners(memberId!);
-    if (path == '/pooja-bookings') return LocalDb.getPoojaBookings(memberId!);
-    if (path == '/sankalp-bookings') return LocalDb.getSankalpBookings(memberId!);
-    if (path == '/meetings') return LocalDb.getMeetings(memberId!);
-    throw ApiException('Unknown path: $path');
+    final res = await http.get(Uri.parse('$_base$path'), headers: await _headers());
+    return _parse(res);
   }
 
   Future<dynamic> post(String path, Map<String, dynamic> body) async {
-    // Create member (admin action)
-    if (path == '/auth/members') {
-      return LocalDb.createMember(body);
-    }
-    if (path == '/devotees') return LocalDb.addDevotee(memberId!, body);
-    if (path == '/donations') return LocalDb.addDonation(memberId!, body);
-    if (path == '/banners') return LocalDb.addBanner(memberId!, body);
-    if (path == '/pooja-bookings') return LocalDb.addPoojaBooking(memberId!, body);
-    if (path == '/sankalp-bookings') return LocalDb.addSankalpBooking(memberId!, body);
-    if (path == '/meetings') return LocalDb.addMeeting(memberId!, body);
-    throw ApiException('Unknown path: $path');
+    final res = await http.post(
+      Uri.parse('$_base$path'),
+      headers: await _headers(),
+      body: jsonEncode(body),
+    );
+    return _parse(res);
   }
 
   Future<dynamic> patch(String path, Map<String, dynamic> body) async {
-    // Pay devotee: /devotees/{id}/pay
-    final payMatch = RegExp(r'^/devotees/(\d+)/pay$').firstMatch(path);
-    if (payMatch != null) {
-      return LocalDb.payDevotee(
-        int.parse(payMatch.group(1)!),
-        (body['amount'] as num).toDouble(),
-        body['payment_method'] ?? 'cash',
-      );
-    }
-    // Toggle member status: /members/{id}/status
-    final statusMatch = RegExp(r'^/members/(\d+)/status$').firstMatch(path);
-    if (statusMatch != null) {
-      await LocalDb.updateMemberStatus(int.parse(statusMatch.group(1)!), body['status']);
-      return {'ok': true};
-    }
-    throw ApiException('Unknown path: $path');
+    final res = await http.patch(
+      Uri.parse('$_base$path'),
+      headers: await _headers(),
+      body: jsonEncode(body),
+    );
+    return _parse(res);
   }
 }

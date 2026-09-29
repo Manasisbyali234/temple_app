@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
+import '../services/local_db.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -44,6 +45,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       } else {
         await auth.loginMember(_emailCtrl.text.trim(), _passCtrl.text);
       }
+    } on ApiLoginException catch (e) {
+      setState(() => _error = e.message);
     } on ApiException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
